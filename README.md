@@ -8,11 +8,11 @@ The application demonstrates a full data-access pipeline: defining domain models
 
 ## Features
 
-✅ ASP.NET Core Web API with OpenAPI (Swagger) support
-✅ Entity Framework Core code-first modeling
-✅ SQLite database with migration history
-✅ One-to-many relationship between `Order` and `InventoryItem`
-✅ Seed data and console verification of persisted records
+✅ ASP.NET Core Web API with OpenAPI (Swagger) support  
+✅ Entity Framework Core code-first modeling  
+✅ SQLite database with migration history  
+✅ One-to-many relationship between `Order` and `InventoryItem`  
+✅ Seed data and console verification of persisted records  
 ✅ Clean, well-structured project layout
 
 ## Getting Started
