@@ -2,17 +2,20 @@
 
 ## Overview
 
-LogiTrack is a warehouse and inventory management API built with ASP.NET Core and Entity Framework Core. It tracks inventory items, orders, and the relationship between them, using a code-first EF Core model backed by a SQLite database.
+LogiTrack is a warehouse and inventory management API built with ASP.NET Core, Entity Framework Core, and SQLite. It exposes REST endpoints for inventory items and orders, documents those endpoints with Swagger/OpenAPI, and uses DTOs to keep API responses separate from the EF Core entities.
 
-The application demonstrates a full data-access pipeline: defining domain models, configuring a `DbContext`, generating and applying migrations, and seeding/querying related data through EF Core.
+The application demonstrates a full data-access pipeline: defining domain models, configuring a `DbContext`, generating and applying migrations, seeding/querying related data through EF Core, and serving asynchronous controller actions with validation and error handling.
 
 ## Features
 
-✅ ASP.NET Core Web API with OpenAPI (Swagger) support  
+✅ ASP.NET Core Web API with OpenAPI (Swagger) support and interactive endpoint testing  
 ✅ Entity Framework Core code-first modeling  
 ✅ SQLite database with migration history  
 ✅ One-to-many relationship between `Order` and `InventoryItem`  
 ✅ Seed data and console verification of persisted records  
+✅ Inventory and order CRUD endpoints for the implemented operations  
+✅ `ItemDto` and `OrderDto` request/response contracts  
+✅ Async database access, validation, and meaningful HTTP error responses  
 ✅ Clean, well-structured project layout
 
 ## Getting Started
@@ -42,6 +45,75 @@ The application demonstrates a full data-access pipeline: defining domain models
    dotnet run
    ```
 
+5. Open Swagger UI while the application is running
+
+    ```text
+    https://localhost:<port>/swagger
+    ```
+
+    The port is printed by `dotnet run` and is also configured in `Properties/launchSettings.json`.
+
+## API Endpoints
+
+The controllers use the route prefix `api/[controller]`.
+
+### Inventory
+
+| Method | Route | Description |
+| --- | --- | --- |
+| `GET` | `/api/inventory` | Return all inventory items as `ItemDto` objects. |
+| `POST` | `/api/inventory` | Create an inventory item and return the generated ID. |
+| `DELETE` | `/api/inventory/{id}` | Delete an inventory item by ID. |
+
+Example `POST /api/inventory` request:
+
+```json
+{
+   "name": "Pallet Jack",
+   "quantity": 12,
+   "location": "Warehouse A"
+}
+```
+
+### Orders
+
+| Method | Route | Description |
+| --- | --- | --- |
+| `GET` | `/api/order` | Return all orders with their related items. |
+| `GET` | `/api/order/{id}` | Return one order with its related items. |
+| `POST` | `/api/order` | Create an order and its item records. |
+| `DELETE` | `/api/order/{id}` | Delete an order by ID. |
+
+Example `POST /api/order` request:
+
+```json
+{
+   "customerName": "Samir",
+   "items": [
+      {
+         "name": "Pallet Jack",
+         "quantity": 12,
+         "location": "Warehouse A"
+      },
+      {
+         "name": "Forklift",
+         "quantity": 3,
+         "location": "Warehouse B"
+      }
+   ]
+}
+```
+
+An order must include at least one item. Missing inventory or order IDs return `404 Not Found`; an order without items returns `400 Bad Request`; successful deletes return `204 No Content`.
+
+## DTOs
+
+The API uses data transfer objects instead of exposing EF Core entities directly:
+
+- `ItemDto` contains `ItemId`, `Name`, `Quantity`, and `Location`.
+- `OrderDto` contains `OrderId`, `CustomerName`, and an `Items` collection of `ItemDto` objects.
+- `OrderDto.Items` is also used to submit the item data when creating an order.
+
 ## Project Structure
 
 ```
@@ -51,6 +123,12 @@ MSFD_LogiTrack/
 │   ├── InventoryItem.cs
 │   ├── Order.cs
 │   └── LogiTrackContext.cs
+├── Controllers/
+│   ├── InventoryController.cs
+│   └── OrderController.cs
+├── DTOs/
+│   ├── ItemDto.cs
+│   └── OrderDto.cs
 ├── Migrations/
 ├── Program.cs
 ├── appsettings.json
@@ -60,10 +138,13 @@ MSFD_LogiTrack/
 
 ## How It Works
 
-1. `LogiTrackContext` configures EF Core to use SQLite as the data provider.
+1. `Program.cs` registers controllers, JSON cycle handling, Swagger services, and `LogiTrackContext` with SQLite.
 2. `InventoryItem` and `Order` are defined as related entities, with each order holding a collection of inventory items.
 3. On startup, the app ensures the database exists and seeds sample inventory items and an order if none are present.
-4. Data is retrieved using EF Core queries (including `Include` for eager loading of related items) and printed to the console for verification.
+4. Controllers use asynchronous EF Core queries and `Include` to load related order items.
+5. Controller actions map entities to `ItemDto` and `OrderDto` objects before returning API responses.
+6. The development environment enables Swagger UI for trying the endpoints in a browser.
+7. The startup test blocks also print sample entity and order output to the console for verification.
 
 ## Sample Output
 
@@ -82,10 +163,14 @@ Item: Forklift | Quantity: 3 | Location: Warehouse B
 - Dependency injection and `DbContext` scoping
 - ASP.NET Core minimal hosting model
 - Seeding and querying related data
+- REST routing with controller actions
+- DTO mapping and JSON serialization
+- Swagger/OpenAPI endpoint documentation
+- Async API operations and HTTP status codes
 
 ## About
 
-.NET 10 Web API built for the Microsoft Full Stack Developer course as part of the Full-Stack Certification track, Deployment and DevOps capstone (Part 1). This project establishes the core domain models and Entity Framework Core persistence layer for a warehouse inventory tracking system, reinforcing concepts including code-first modeling, database migrations, entity relationships, and data seeding/querying.
+.NET 10 Web API built for the Microsoft Full Stack Developer course as part of the Full-Stack Certification track, Deployment and DevOps capstone. Part 1 establishes the core domain models and Entity Framework Core persistence layer; the current API work adds controller endpoints, DTO contracts, Swagger testing, async operations, validation, and error handling for inventory and orders.
 
 ## Author
 
