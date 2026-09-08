@@ -114,6 +114,10 @@ The API uses data transfer objects instead of exposing EF Core entities directly
 - `OrderDto` contains `OrderId`, `CustomerName`, and an `Items` collection of `ItemDto` objects.
 - `OrderDto.Items` is also used to submit the item data when creating an order.
 
+## Architecture
+
+See the [LogiTrack architecture diagram](docs/architecture.md) for an overview of the request flow, DTO mapping, EF Core persistence, SQLite database, and order-item relationship.
+
 ## Project Structure
 
 ```
@@ -129,6 +133,8 @@ MSFD_LogiTrack/
 ├── DTOs/
 │   ├── ItemDto.cs
 │   └── OrderDto.cs
+├── docs/
+│   └── architecture.md
 ├── Migrations/
 ├── Program.cs
 ├── appsettings.json
