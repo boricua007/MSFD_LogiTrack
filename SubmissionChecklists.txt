@@ -1,0 +1,35 @@
+Submission Checklist (Part 1)
+    Project setup ✔️
+        Solution created with proper folder structure (Models, Controllers, etc.).
+
+    InventoryItem class ✔️
+        Defined with ItemId, Name, Quantity, Location, plus DisplayInfo() method.
+
+    Order class ✔️
+        Defined with OrderId, CustomerName, DatePlaced, Items list, and methods (AddItem, RemoveItem, GetOrderSummary).
+
+    Program.cs test blocks ✔️
+        Console output confirms both InventoryItem.DisplayInfo() and Order.GetOrderSummary() work correctly.
+
+    EF Core DbContext ✔️
+        LogiTrackContext created with DbSet<InventoryItem> and DbSet<Order>, registered in Program.cs using SQLite.
+
+    Database seeding ✔️
+        Initial items (Pallet Jack, Forklift) seeded and retrieved successfully.
+
+    One-to-many relationship ✔️
+        Order.Items and InventoryItem.OrderId implemented, migration applied to persist relationships.
+
+    Copilot review suggestions ✔️
+        Improvements applied: async methods, duplicate prevention in AddItem, LINQ-based summaries.
+
+    Code saved and ready for Part 2
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Submission Checklist (Part 2)
+    Two API controllers: Inventory and Order ✔️
+    Working GET, POST, DELETE routes for both ✔️
+    Routes tested in Swagger ✔️
+    Microsoft Copilot suggestions applied (async, error handling, DTOs, routing improvements) ✔️
+    Code saved and ready for Part 3 ✔️

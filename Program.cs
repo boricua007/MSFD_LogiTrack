@@ -1,30 +1,42 @@
 using MSFD_LogiTrack.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
+    
+builder.Services.AddEndpointsApiExplorer();   // Required for Swagger
+builder.Services.AddSwaggerGen();             // Required for Swagger
 
 
 // Register DbContext with SQLite
 builder.Services.AddDbContext<LogiTrackContext>(options =>
     options.UseSqlite("Data Source=logitrack.db"));
 
-
-// Add services to the container
-builder.Services.AddOpenApi();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
 
 
 
+//  *** TESTING ***
 // STEP 2 TEST BLOCK
 var Item = new InventoryItem
 {
@@ -120,6 +132,8 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
+
 // -------------------------------
+//  *** END TESTING ***
 
 app.Run();
