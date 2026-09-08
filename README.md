@@ -170,7 +170,9 @@ Item: Forklift | Quantity: 3 | Location: Warehouse B
 
 ## About
 
-.NET 10 Web API built for the Microsoft Full Stack Developer course as part of the Full-Stack Certification track, Deployment and DevOps capstone. Part 1 establishes the core domain models and Entity Framework Core persistence layer; the current API work adds controller endpoints, DTO contracts, Swagger testing, async operations, validation, and error handling for inventory and orders.
+LogiTrack is the final capstone project for the Microsoft Full Stack Developer course and the Full-Stack Certification track. It is a .NET 10 warehouse and inventory management API designed to model common logistics workflows: maintaining inventory, creating customer orders, and associating order items with persisted records.
+
+The project brings together ASP.NET Core Web API, Entity Framework Core, SQLite, database migrations, DTO-based request and response contracts, and Swagger/OpenAPI documentation. It demonstrates the progression from domain models and relational persistence to asynchronous controller endpoints with validation, error handling, JSON serialization, and interactive API testing.
 
 ## Author
 
