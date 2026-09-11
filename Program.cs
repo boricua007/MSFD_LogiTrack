@@ -1,6 +1,12 @@
 using MSFD_LogiTrack.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using System.Text;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,12 +20,73 @@ builder.Services.AddControllers()
     });
     
 builder.Services.AddEndpointsApiExplorer();   // Required for Swagger
-builder.Services.AddSwaggerGen();             // Required for Swagger
+builder.Services.AddSwaggerGen(options =>
+{
+    // Adds an Authorize button to Swagger UI for testing JWT-protected endpoints
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter the JWT token returned from /api/auth/login (no need to type \"Bearer \" prefix)."
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer", document),
+            new List<string>()
+        }
+    });
+});
 
 
 // Register DbContext with SQLite
 builder.Services.AddDbContext<LogiTrackContext>(options =>
     options.UseSqlite("Data Source=logitrack.db"));
+
+// Register Identity services
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+    {
+        // Enforce a stronger password policy than the Identity defaults
+        options.Password.RequiredLength = 8;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequireUppercase = true;
+
+        // Lock accounts after repeated failed logins to mitigate brute-force attacks
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    })
+    .AddEntityFrameworkStores<LogiTrackContext>()
+    .AddDefaultTokenProviders();
+
+
+// PART 3 - Step 5: Security Review
+// Register JWT Bearer authentication so [Authorize] validates the tokens issued by AuthController.
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured.");
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
+
+
 
 var app = builder.Build();
 
@@ -27,10 +94,15 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        // Keeps the entered bearer token across page reloads for easier manual testing
+        options.EnablePersistAuthorization();
+    });
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

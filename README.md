@@ -16,6 +16,10 @@ The application demonstrates a full data-access pipeline: defining domain models
 ✅ Inventory and order CRUD endpoints for the implemented operations  
 ✅ `ItemDto` and `OrderDto` request/response contracts  
 ✅ Async database access, validation, and meaningful HTTP error responses  
+✅ ASP.NET Core Identity user accounts backed by EF Core/SQLite  
+✅ JWT bearer authentication with registration and login endpoints  
+✅ Role-based authorization (`[Authorize]` / `[Authorize(Roles = "Manager")]`)  
+✅ Account lockout and password policy hardening to mitigate brute-force attacks  
 ✅ Clean, well-structured project layout
 
 ## Getting Started
@@ -48,14 +52,44 @@ The application demonstrates a full data-access pipeline: defining domain models
 5. Open Swagger UI while the application is running
 
     ```text
-    https://localhost:<port>/swagger
+    http://localhost:<port>/swagger
     ```
 
-    The port is printed by `dotnet run` and is also configured in `Properties/launchSettings.json`.
+    The port is printed by `dotnet run` and is also configured in `Properties/launchSettings.json`. Swagger UI is only enabled in the Development environment, so set `ASPNETCORE_ENVIRONMENT=Development` first if it isn't already set:
+
+    ```powershell
+    $env:ASPNETCORE_ENVIRONMENT = "Development"
+    dotnet run
+    ```
+
+6. Register a user, log in, and authorize Swagger
+
+    - Call `POST /api/auth/register` with an email/password to create an account.
+    - Call `POST /api/auth/login` with the same credentials to receive a JWT in the response body.
+    - Click the **Authorize** button in Swagger UI and paste just the token value (no `Bearer` prefix, no surrounding braces/quotes).
+    - Protected endpoints (e.g. `GET /api/inventory`) now return `200 OK`; without a token they return `401 Unauthorized`.
 
 ## API Endpoints
 
 The controllers use the route prefix `api/[controller]`.
+
+### Auth
+
+| Method | Route | Description |
+| --- | --- | --- |
+| `POST` | `/api/auth/register` | Create a new Identity user account. |
+| `POST` | `/api/auth/login` | Validate credentials and return a signed JWT. |
+
+Example `POST /api/auth/register` / `login` request:
+
+```json
+{
+   "email": "jmorris@example.com",
+   "password": "StrongPass1!"
+}
+```
+
+All `Inventory` and `Order` endpoints require `Authorization: Bearer <token>`. The inventory delete endpoint additionally requires the `Manager` role.
 
 ### Inventory
 
@@ -126,13 +160,17 @@ MSFD_LogiTrack/
 ├── Models/
 │   ├── InventoryItem.cs
 │   ├── Order.cs
+│   ├── ApplicationUser.cs
 │   └── LogiTrackContext.cs
 ├── Controllers/
 │   ├── InventoryController.cs
-│   └── OrderController.cs
+│   ├── OrderController.cs
+│   └── AuthController.cs
 ├── DTOs/
 │   ├── ItemDto.cs
-│   └── OrderDto.cs
+│   ├── OrderDto.cs
+│   ├── RegisterDto.cs
+│   └── LoginDto.cs
 ├── docs/
 │   └── architecture.md
 ├── Migrations/
@@ -144,13 +182,14 @@ MSFD_LogiTrack/
 
 ## How It Works
 
-1. `Program.cs` registers controllers, JSON cycle handling, Swagger services, and `LogiTrackContext` with SQLite.
-2. `InventoryItem` and `Order` are defined as related entities, with each order holding a collection of inventory items.
+1. `Program.cs` registers controllers, JSON cycle handling, Swagger services (with a JWT Authorize button), `LogiTrackContext` with SQLite, ASP.NET Core Identity, and JWT bearer authentication.
+2. `InventoryItem` and `Order` are defined as related entities, with each order holding a collection of inventory items. `ApplicationUser` extends `IdentityUser` for account data.
 3. On startup, the app ensures the database exists and seeds sample inventory items and an order if none are present.
-4. Controllers use asynchronous EF Core queries and `Include` to load related order items.
-5. Controller actions map entities to `ItemDto` and `OrderDto` objects before returning API responses.
-6. The development environment enables Swagger UI for trying the endpoints in a browser.
-7. The startup test blocks also print sample entity and order output to the console for verification.
+4. `AuthController` registers users via `UserManager`, validates credentials via `SignInManager`, and issues a signed JWT containing the user's ID, email, and role claims.
+5. Controllers use asynchronous EF Core queries and `Include` to load related order items, and are secured with `[Authorize]`; the inventory delete endpoint additionally requires the `Manager` role.
+6. Controller actions map entities to `ItemDto` and `OrderDto` objects before returning API responses.
+7. The development environment enables Swagger UI for trying the endpoints (including authenticating with a bearer token) in a browser.
+8. The startup test blocks also print sample entity and order output to the console for verification.
 
 ## Sample Output
 
@@ -173,12 +212,15 @@ Item: Forklift | Quantity: 3 | Location: Warehouse B
 - DTO mapping and JSON serialization
 - Swagger/OpenAPI endpoint documentation
 - Async API operations and HTTP status codes
+- ASP.NET Core Identity for user account management
+- JWT bearer token issuance and validation
+- Role-based authorization and account lockout policies
 
 ## About
 
 LogiTrack is the final capstone project for the Microsoft Full Stack Developer course and the Full-Stack Certification track. It is a .NET 10 warehouse and inventory management API designed to model common logistics workflows: maintaining inventory, creating customer orders, and associating order items with persisted records.
 
-The project brings together ASP.NET Core Web API, Entity Framework Core, SQLite, database migrations, DTO-based request and response contracts, and Swagger/OpenAPI documentation. It demonstrates the progression from domain models and relational persistence to asynchronous controller endpoints with validation, error handling, JSON serialization, and interactive API testing.
+The project brings together ASP.NET Core Web API, Entity Framework Core, SQLite, database migrations, DTO-based request and response contracts, Swagger/OpenAPI documentation, and ASP.NET Core Identity with JWT authentication and role-based authorization. It demonstrates the progression from domain models and relational persistence to asynchronous, secured controller endpoints with validation, error handling, JSON serialization, and interactive API testing.
 
 ## Author
 

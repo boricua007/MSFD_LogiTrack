@@ -33,3 +33,14 @@ Submission Checklist (Part 2)
     Routes tested in Swagger ✔️
     Microsoft Copilot suggestions applied (async, error handling, DTOs, routing improvements) ✔️
     Code saved and ready for Part 3 ✔️
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Submission Checklist (Part 3)
+    ASP.NET Identity installed and configured ✔️
+    ApplicationUser model created ✔️
+    Registration and login routes added ✔️
+    JWT token-based authentication implemented ✔️
+    Routes secured with [Authorize] and roles ✔️
+    Copilot suggestions reviewed and applied ✔️
+    Database updated with Identity schema ✔️

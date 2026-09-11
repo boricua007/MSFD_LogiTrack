@@ -1,18 +1,19 @@
 // PART 2 - Step 3: Build OrderController Endpoints
-
-
 using Microsoft.AspNetCore.Mvc;
 using MSFD_LogiTrack.Models;
 using MSFD_LogiTrack.DTOs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MSFD_LogiTrack.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize] // Protects all endpoints in this controller
     public class OrderController : ControllerBase
     {
         private readonly LogiTrackContext _context;
+
 
         public OrderController(LogiTrackContext context)
         {
@@ -101,6 +102,7 @@ namespace MSFD_LogiTrack.Controllers
         }
 
         // DELETE: /api/orders/{id}
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(int id)
         {

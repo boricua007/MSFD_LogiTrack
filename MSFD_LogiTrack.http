@@ -4,3 +4,64 @@ GET {{MSFD_LogiTrack_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+### Register a new user
+POST {{MSFD_LogiTrack_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "TestPass1!"
+}
+
+###
+
+### Log in and get a JWT (copy the "token" value from the response into @token below)
+POST {{MSFD_LogiTrack_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "TestPass1!"
+}
+
+###
+
+@token = PASTE_TOKEN_HERE
+
+### GET inventory WITHOUT a token -> expect 401 Unauthorized
+GET {{MSFD_LogiTrack_HostAddress}}/api/inventory
+Accept: application/json
+
+###
+
+### GET inventory WITH a token -> expect 200 OK
+GET {{MSFD_LogiTrack_HostAddress}}/api/inventory
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###
+
+### POST a new inventory item (requires a valid token)
+POST {{MSFD_LogiTrack_HostAddress}}/api/inventory
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Hand Truck",
+  "quantity": 5,
+  "location": "Warehouse C"
+}
+
+###
+
+### DELETE an inventory item -> requires the "Manager" role, expect 403 Forbidden for a regular user
+DELETE {{MSFD_LogiTrack_HostAddress}}/api/inventory/1
+Authorization: Bearer {{token}}
+
+###
+
+### GET orders WITH a token -> expect 200 OK
+GET {{MSFD_LogiTrack_HostAddress}}/api/order
+Accept: application/json
+Authorization: Bearer {{token}}

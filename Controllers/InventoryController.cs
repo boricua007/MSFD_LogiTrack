@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using MSFD_LogiTrack.Models;
 using MSFD_LogiTrack.DTOs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MSFD_LogiTrack.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize] // Protects all endpoints in this controller
     public class InventoryController : ControllerBase
     {
         private readonly LogiTrackContext _context;
@@ -55,6 +57,7 @@ namespace MSFD_LogiTrack.Controllers
         }
 
         // DELETE: /api/inventory/{id}
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteInventoryItem(int id)
         {
