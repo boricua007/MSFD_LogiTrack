@@ -2,9 +2,9 @@
 
 ## Overview
 
-LogiTrack is a warehouse and inventory management API built with ASP.NET Core, Entity Framework Core, and SQLite. It exposes REST endpoints for inventory items and orders, documents those endpoints with Swagger/OpenAPI, and uses DTOs to keep API responses separate from the EF Core entities.
+LogiTrack is a warehouse and inventory management API built with ASP.NET Core, Entity Framework Core, and SQLite. It exposes secure REST endpoints for inventory items and orders, documents those endpoints with Swagger/OpenAPI, and uses DTOs to keep API responses separate from EF Core entities.
 
-The application demonstrates a full data-access pipeline: defining domain models, configuring a `DbContext`, generating and applying migrations, seeding/querying related data through EF Core, and serving asynchronous controller actions with validation and error handling.
+The application demonstrates a full data-access and security pipeline: defining domain models, configuring a `DbContext`, generating EF Core migrations, securing endpoints with ASP.NET Core Identity and JWT bearer tokens, and optimizing endpoint speed using `IMemoryCache` and direct LINQ query projections.
 
 ## Features
 
