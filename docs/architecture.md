@@ -4,42 +4,73 @@ LogiTrack is an ASP.NET Core Web API backed by Entity Framework Core, ASP.NET Co
 
 ```mermaid
 flowchart TD
-    Client[API Client / Swagger UI] --> AuthHeader[Authorization: Bearer JWT]
-    AuthHeader --> AuthCtrl[AuthController / JWT Middleware]
-    
-    AuthCtrl -->|Authenticate / Authorize| Controllers
+    %% Nodes
+    Client(["🌐 API Client / Swagger UI"])
+    AuthHeader["🔑 Authorization: Bearer JWT"]
+    AuthCtrl["🔐 AuthController / JWT Middleware"]
     
     subgraph Controllers [API Controllers]
-        Inventory[InventoryController]
-        Orders[OrderController]
+        Inventory["📦 InventoryController"]
+        Orders["🛒 OrderController"]
     end
 
     subgraph Caching [Caching Layer]
-        MemCache[(IMemoryCache)]
+        MemCache[("⚡ IMemoryCache")]
     end
+
+    subgraph Contracts [Data Contracts]
+        ItemDto["📄 ItemDto"]
+        OrderDto["📋 OrderDto"]
+    end
+
+    subgraph Persistence [Data Access Layer]
+        Context["⚙️ LogiTrackContext"]
+        UserManager["👤 Identity UserManager"]
+        SQLite[("🗄️ SQLite Database")]
+        Migrations["🛠️ EF Core Migrations"]
+        Order["📋 Order Entity"]
+        Items["📦 InventoryItem Entity"]
+        AppUser["👤 ApplicationUser Entity"]
+    end
+
+    %% Flow Connections
+    Client --> AuthHeader
+    AuthHeader --> AuthCtrl
+    AuthCtrl -->|Authenticate / Authorize| Controllers
 
     Inventory <-->|Cache Hit / Miss| MemCache
     Orders <-->|Cache Hit / Miss| MemCache
 
-    Inventory --> ItemDto[ItemDto]
-    Orders --> OrderDto[OrderDto]
+    Inventory --> ItemDto
+    Orders --> OrderDto
     OrderDto --> ItemDto
-
-    subgraph Persistence [Data Access Layer]
-        Context[LogiTrackContext]
-        UserManager[Identity UserManager]
-    end
 
     Inventory --> Context
     Orders --> Context
     AuthCtrl --> UserManager
     UserManager --> Context
 
-    Context --> SQLite[(SQLite Database)]
-    Migrations[EF Core Migrations] --> SQLite
+    Context --> SQLite
+    Migrations --> SQLite
 
-    Order[Order] --> Items[InventoryItem]
-    AppUser[ApplicationUser] --> Context
+    Order --> Items
+    AppUser --> Context
+
+    %% Styling Definitions
+    classDef client fill:#24292f,stroke:#58a6ff,stroke-width:2px,color:#ffffff
+    classDef security fill:#D83B01,stroke:#ff9f70,stroke-width:2px,color:#ffffff
+    classDef compute fill:#0078D4,stroke:#50e6ff,stroke-width:2px,color:#ffffff
+    classDef cache fill:#107C10,stroke:#54d454,stroke-width:2px,color:#ffffff
+    classDef dto fill:#008272,stroke:#00e5ce,stroke-width:2px,color:#ffffff
+    classDef database fill:#512BD4,stroke:#a78bfa,stroke-width:2px,color:#ffffff
+
+    %% Class Assignments
+    class Client,AuthHeader client
+    class AuthCtrl,UserManager,AppUser security
+    class Inventory,Orders compute
+    class MemCache cache
+    class ItemDto,OrderDto dto
+    class Context,SQLite,Migrations,Order,Items database
 ```
 
 ## Request Flow
