@@ -19,6 +19,8 @@ The application demonstrates a full data-access pipeline: defining domain models
 ✅ ASP.NET Core Identity user accounts backed by EF Core/SQLite  
 ✅ JWT bearer authentication with registration and login endpoints  
 ✅ Role-based authorization (`[Authorize]` / `[Authorize(Roles = "Manager")]`)  
+✅ In-memory caching with `IMemoryCache` and automatic cache invalidation on mutation  
+✅ Optimized EF Core queries with `.AsNoTracking()` and direct LINQ projections  
 ✅ Account lockout and password policy hardening to mitigate brute-force attacks  
 ✅ Clean, well-structured project layout
 

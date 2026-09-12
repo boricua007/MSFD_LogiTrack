@@ -44,3 +44,14 @@ Submission Checklist (Part 3)
     Routes secured with [Authorize] and roles ✔️
     Copilot suggestions reviewed and applied ✔️
     Database updated with Identity schema ✔️
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Submission Checklist (Part 4)
+    In-memory caching implemented on at least one route ✔️
+    Query optimizations applied in controller logic ✔️
+    Slow or repeated queries reduced or eliminated ✔️
+    Cache expiration policy in place ✔️
+    Copilot prompts used to refine logic ✔️
+    Improvements verified through testing or time measurement ✔️
+    Code saved for use in Part 5 ✔️
