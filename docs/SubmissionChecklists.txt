@@ -55,3 +55,16 @@ Submission Checklist (Part 4)
     Copilot prompts used to refine logic ✔️
     Improvements verified through testing or time measurement ✔️
     Code saved for use in Part 5 ✔️
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Submission Checklist (Part 5)
+    Persistent state implementation verified ✔️
+    Full workflow tested: authentication, caching, API behavior ✔️
+        Register/login, inventory/order CRUD, role-restricted routes, and invalid-input validation exercised via Swagger.
+    Code optimized using Copilot recommendations ✔️
+        Global exception handling, cross-controller cache invalidation, and HTTPS-redirect fix applied.
+    Redundant or unnecessary logic removed ✔️
+    Final version ready for peer submission ✔️
+
+
