@@ -19,9 +19,10 @@ The application demonstrates a full data-access and security pipeline: defining 
 ✅ ASP.NET Core Identity user accounts backed by EF Core/SQLite  
 ✅ JWT bearer authentication with registration and login endpoints  
 ✅ Role-based authorization (`[Authorize]` / `[Authorize(Roles = "Manager")]`)  
-✅ In-memory caching with `IMemoryCache` and automatic cache invalidation on mutation  
+✅ In-memory caching with `IMemoryCache` and automatic cache invalidation on mutation (including cross-invalidation between inventory and order caches, since an item can appear in both)  
 ✅ Optimized EF Core queries with `.AsNoTracking()` and direct LINQ projections  
 ✅ Account lockout and password policy hardening to mitigate brute-force attacks  
+✅ Global exception handling via `AddProblemDetails()`/`UseExceptionHandler()` for consistent RFC 7807 error responses  
 ✅ Clean, well-structured project layout
 
 ## Getting Started
@@ -154,6 +155,8 @@ The API uses data transfer objects instead of exposing EF Core entities directly
 
 See the [LogiTrack architecture diagram](docs/architecture.md) for an overview of the request flow, DTO mapping, EF Core persistence, SQLite database, and order-item relationship.
 
+See the [project summary](docs/project-summary.md) for a peer-review-ready overview of key decisions and known trade-offs.
+
 ## Project Structure
 
 ```
@@ -174,7 +177,8 @@ MSFD_LogiTrack/
 │   ├── RegisterDto.cs
 │   └── LoginDto.cs
 ├── docs/
-│   └── architecture.md
+│   ├── architecture.md
+│   └── project-summary.md
 ├── Migrations/
 ├── Program.cs
 ├── appsettings.json
@@ -184,13 +188,13 @@ MSFD_LogiTrack/
 
 ## How It Works
 
-1. `Program.cs` registers controllers, JSON cycle handling, Swagger services (with a JWT Authorize button), `LogiTrackContext` with SQLite, ASP.NET Core Identity, and JWT bearer authentication.
+1. `Program.cs` registers controllers, JSON cycle handling, Swagger services (with a JWT Authorize button), `LogiTrackContext` with SQLite, ASP.NET Core Identity, JWT bearer authentication, and a global exception handler (`AddProblemDetails()`/`UseExceptionHandler()`) for consistent error responses.
 2. `InventoryItem` and `Order` are defined as related entities, with each order holding a collection of inventory items. `ApplicationUser` extends `IdentityUser` for account data.
 3. On startup, the app ensures the database exists and seeds sample inventory items and an order if none are present.
 4. `AuthController` registers users via `UserManager`, validates credentials via `SignInManager`, and issues a signed JWT containing the user's ID, email, and role claims.
 5. Controllers use asynchronous EF Core queries and `Include` to load related order items, and are secured with `[Authorize]`; the inventory delete endpoint additionally requires the `Manager` role.
 6. Controller actions map entities to `ItemDto` and `OrderDto` objects before returning API responses.
-7. The development environment enables Swagger UI for trying the endpoints (including authenticating with a bearer token) in a browser.
+7. The development environment enables Swagger UI for trying the endpoints (including authenticating with a bearer token) in a browser; HTTPS redirection is skipped in Development so Swagger's `fetch()` calls to `http://localhost:5085` don't fail on a cross-origin redirect.
 8. The startup test blocks also print sample entity and order output to the console for verification.
 
 ## Sample Output

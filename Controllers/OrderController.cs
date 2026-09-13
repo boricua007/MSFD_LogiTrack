@@ -120,6 +120,7 @@ namespace MSFD_LogiTrack.Controllers
 
             // Invalidate cache
             _cache.Remove(CacheKey);
+            _cache.Remove("inventory_dto_list"); // order items are also InventoryItem rows
 
             // 5. Update DTO with generated ID
             orderDto.OrderId = order.OrderId;
@@ -149,6 +150,7 @@ namespace MSFD_LogiTrack.Controllers
 
             // Invalidate cache
             _cache.Remove(CacheKey);
+            _cache.Remove("inventory_dto_list"); // order items are also InventoryItem rows
 
             // 4. Return success (204 No Content)
             return NoContent();

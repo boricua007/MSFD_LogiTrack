@@ -88,9 +88,24 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSwaggerUI",
+        policy => policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
 
+// Returns a consistent RFC 7807 JSON shape for unhandled exceptions instead of a raw 500
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
+app.UseExceptionHandler();
+app.UseCors("AllowSwaggerUI");
+
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -103,7 +118,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// Skip in Development: redirecting http://localhost:5085 -> https://localhost:7132 breaks
+// Swagger UI's fetch() with a cross-origin redirect, surfacing as "Failed to fetch".
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseDefaultFiles();  // Serves wwwroot/index.html at the root URL
 app.UseStaticFiles();
 app.UseAuthentication();
@@ -112,17 +132,16 @@ app.MapControllers();
 
 
 
-//  *** TESTING ***
+//  *** TEST DATA SEEDING ***
 // STEP 2 TEST BLOCK
 var Item = new InventoryItem
 {
-    Name = "Pallet Jack",
-    Quantity = 12,
-    Location = "Warehouse A"
+    Name = "Hand Truck",
+    Quantity = 8,
+    Location = "Staging Area"
 };
 
 Item.DisplayInfo();
-// -------------------------------
 
 
 
@@ -134,15 +153,14 @@ var order = new Order
 };
 
 // Add items
-order.AddItem(new InventoryItem { ItemId = 1, Name = "Pallet Jack", Quantity = 12, Location = "Warehouse A" });
-order.AddItem(new InventoryItem { ItemId = 2, Name = "Forklift", Quantity = 3, Location = "Warehouse B" });
+order.AddItem(new InventoryItem { ItemId = 1, Name = "Shrink Wrap", Quantity = 25, Location = "Dock 1" });
+order.AddItem(new InventoryItem { ItemId = 2, Name = "Conveyor Belt", Quantity = 1, Location = "Dock 2" });
 
 // Remove one item
 order.RemoveItem(1);
 
 // Print summary
 Console.WriteLine(order.GetOrderSummary());
-// -------------------------------
 
 
 
@@ -161,6 +179,7 @@ using (var scope = app.Services.CreateScope())
         );
         context.SaveChanges();
     }
+    // ^ These are the canonical standalone inventory items (not tied to any order)
 
     // Retrieve and print items (confirms persistence)
     foreach (var inv in context.InventoryItems)
@@ -168,7 +187,7 @@ using (var scope = app.Services.CreateScope())
         inv.DisplayInfo();
     }
 }
-// -------------------------------
+
 
 
 // STEP 6: Save and Retrieve Order with Items
@@ -187,8 +206,8 @@ using (var scope = app.Services.CreateScope())
             CustomerName = "Samir"
         };
 
-        seedOrder.AddItem(new InventoryItem { Name = "Pallet Jack", Quantity = 12, Location = "Warehouse A" });
-        seedOrder.AddItem(new InventoryItem { Name = "Forklift", Quantity = 3, Location = "Warehouse B" });
+        seedOrder.AddItem(new InventoryItem { Name = "Barcode Scanner", Quantity = 6, Location = "Warehouse C" });
+        seedOrder.AddItem(new InventoryItem { Name = "Loading Ramp", Quantity = 2, Location = "Warehouse D" });
 
         context.Orders.Add(seedOrder);
         context.SaveChanges();
@@ -209,7 +228,68 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// -------------------------------
-//  *** END TESTING ***
+
+
+//  *** ROLE DATA SEEDING ***
+// STEP 7: Seed Identity Roles and Default Manager Account
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    // Ensure roles exist
+    string[] roleNames = { "Manager", "User" };
+    foreach (var roleName in roleNames)
+    {
+        if (!await roleManager.RoleExistsAsync(roleName))
+        {
+            await roleManager.CreateAsync(new IdentityRole(roleName));
+            Console.WriteLine($"Seeded role: {roleName}");
+        }
+    }
+
+    // Seed default Manager account
+    var testEmail = "manager1@logitrack.com";
+    var testPassword = "StrongPass!123"; // must meet Identity password policy
+
+    var user = await userManager.FindByEmailAsync(testEmail);
+    if (user == null)
+    {
+        user = new ApplicationUser { UserName = testEmail, Email = testEmail };
+        var result = await userManager.CreateAsync(user, testPassword);
+
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, "Manager");
+            Console.WriteLine($"Seeded Manager account: {testEmail}");
+        }
+        else
+        {
+            Console.WriteLine("Failed to seed Manager account: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+    }
+
+    // Seed default User account
+    var userEmail = "user1@logitrack.com";
+    var userPassword = "StrongPass!123"; // must meet Identity password policy
+
+    var normalUser = await userManager.FindByEmailAsync(userEmail);
+    if (normalUser == null)
+    {
+        normalUser = new ApplicationUser { UserName = userEmail, Email = userEmail };
+        var result = await userManager.CreateAsync(normalUser, userPassword);
+
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(normalUser, "User");
+            Console.WriteLine($"Seeded User account: {userEmail}");
+        }
+        else
+        {
+            Console.WriteLine("Failed to seed User account: " +
+                string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+    }
+}
 
 app.Run();

@@ -64,8 +64,13 @@ namespace MSFD_LogiTrack.Controllers
 
         // POST: /api/inventory
         [HttpPost]
-        public async Task<ActionResult<ItemDto>> PostInventoryItem(ItemDto itemDto)
+        public async Task<ActionResult<ItemDto>> PostInventoryItem([FromBody] ItemDto itemDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var item = new InventoryItem
             {
                 Name = itemDto.Name,
@@ -78,11 +83,13 @@ namespace MSFD_LogiTrack.Controllers
 
             // Invalidate cache so subsequent GET requests load fresh data
             _cache.Remove(CacheKey);
+            _cache.Remove("orders_dto_list"); // item may also be nested inside an order's Items
 
             itemDto.ItemId = item.ItemId; // update DTO with generated ID
 
             return CreatedAtAction(nameof(GetInventory), new { id = item.ItemId }, itemDto);
         }
+
 
         // DELETE: /api/inventory/{id}
         [Authorize(Roles = "Manager")]
@@ -100,6 +107,7 @@ namespace MSFD_LogiTrack.Controllers
 
             // Invalidate cache so subsequent GET requests load fresh data
             _cache.Remove(CacheKey);
+            _cache.Remove("orders_dto_list"); // item may also be nested inside an order's Items
 
             return NoContent();
         }

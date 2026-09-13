@@ -80,12 +80,14 @@ flowchart TD
 3. For GET endpoints (`/api/inventory`, `/api/order`), the controller checks `IMemoryCache`:
    - **Cache Hit:** Returns cached DTO response immediately without querying the database.
    - **Cache Miss:** Queries `LogiTrackContext` using `.AsNoTracking()` and direct LINQ `.Select()` projections, stores the result in `IMemoryCache` with a 30-second sliding/absolute policy, and returns the response.
-4. Mutation endpoints (`POST`, `DELETE`) write changes to `LogiTrackContext`, persist to SQLite, and invalidate the corresponding cache entries.
+4. Mutation endpoints (`POST`, `DELETE`) write changes to `LogiTrackContext`, persist to SQLite, and invalidate the corresponding cache entries. Since an `InventoryItem` can appear both standalone (`/api/inventory`) and nested inside its `Order` (`/api/order`), each controller also invalidates the other's cache key so the two never drift out of sync for shared rows.
 5. Swagger/OpenAPI documents available routes and provides Bearer token authorization support.
+6. Unhandled exceptions are caught by a global exception handler (`AddProblemDetails()` + `UseExceptionHandler()`), which returns a consistent RFC 7807 JSON error response instead of a raw 500 or leaked stack trace.
 
 ## Persistence & Security Model
 
 - **Identity & Auth:** `ApplicationUser` extends `IdentityUser`. `AuthController` handles registration and login, issuing signed JWT tokens.
 - **Entities & Relationships:** `Order` represents a customer order and contains a collection of `InventoryItem` records. `InventoryItem` stores item details and an optional `OrderId` foreign key.
-- **Caching & Query Optimization:** Direct LINQ projections prevent over-fetching entity columns, and `IMemoryCache` minimizes database roundtrips for repeated read requests.
+- **Caching & Query Optimization:** Direct LINQ projections prevent over-fetching entity columns, and `IMemoryCache` minimizes database roundtrips for repeated read requests. Mutations invalidate both the owning controller's cache key and the other controller's key, since `InventoryItem` rows can be reached through either `/api/inventory` or a nested `Order.Items` collection.
 - **Migrations & Seeding:** EF Core migrations track database schema changes. Startup logic seeds default inventory, orders, and identity roles when empty.
+- **Error Handling:** A global exception handler returns RFC 7807 `ProblemDetails` responses for unhandled exceptions, keeping error shapes consistent and avoiding stack-trace leakage.
