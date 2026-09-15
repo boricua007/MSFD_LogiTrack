@@ -224,7 +224,7 @@ Item: Forklift | Quantity: 3 | Location: Warehouse B
 
 ## About
 
-LogiTrack is the final capstone project for the Microsoft Full Stack Developer course and the Full-Stack Certification track. It is a .NET 10 warehouse and inventory management API designed to model common logistics workflows: maintaining inventory, creating customer orders, and associating order items with persisted records.
+LogiTrack is the final back-end capstone project for the Microsoft Full Stack Developer course and the Full-Stack Certification track. It is a .NET 10 warehouse and inventory management API designed to model common logistics workflows: maintaining inventory, creating customer orders, and associating order items with persisted records.
 
 The project brings together ASP.NET Core Web API, Entity Framework Core, SQLite, database migrations, DTO-based request and response contracts, Swagger/OpenAPI documentation, and ASP.NET Core Identity with JWT authentication and role-based authorization. It demonstrates the progression from domain models and relational persistence to asynchronous, secured controller endpoints with validation, error handling, JSON serialization, and interactive API testing.
 
